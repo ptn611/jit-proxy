@@ -12,12 +12,12 @@ name = "jit_proxy"
 no-entrypoint = []
 cpi = ["no-entrypoint"]
 default = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build", "velocity/idl-build"]
 
 [dependencies]
-anchor-lang = "0.29.0"
-anchor-spl = "0.29.0"
+anchor-lang = "1.0.2"
+anchor-spl = "1.0.2"
 bytemuck = { version = "1.4.0" }
-drift = { git = "https://github.com/velocity-exchange/protocol-v2.git", tag = "v2.140.0", features = ["cpi", "mainnet-beta"]}
+velocity = { git = "https://github.com/velocity-exchange/velocity-v1.git", rev = "4bfc271fe2687aef2201077b10e40f2eac364424", features = ["cpi", "mainnet-beta"] }
 static_assertions = "1.1.0"
-solana-program = "1.16"
-ahash = "=0.8.6"
+solana-program = "3"

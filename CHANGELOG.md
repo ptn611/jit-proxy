@@ -8,9 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Features
 
+- program: migrate from the `drift` program (protocol-v2) to the `velocity` program. Dependency is now `velocity` (velocity-v1) with Anchor 1.0.2 / solana-program 3, replacing `drift` v2.140.0 / Anchor 0.29 / solana 1.16. CPI target program is `vELoC1audYbSYVRXn1vPaV8Axoa9oU6BYmNGZZBDZ1P`; the jit-proxy program id (`J1TnP8z…`) is unchanged and the instruction interface (jit / jit_signed_msg / arb_perp / check_order_constraints) is preserved.
+- ts/sdk: ported to `@velocity-exchange/jit-proxy`, built against `@velocity-exchange/sdk` and Anchor 1.0 (mirrors the vendored `packages/jit-proxy` in velocity-v1). Drops the perp `amm.minOrderSize` dust guard (removed from Velocity perp markets) and the removed `quoteAssetAmount` field on the synthetic maker order.
+
 ### Fixes
 
 ### Breaking
+
+- program: spot JIT is no longer supported — Velocity has no spot order matching (`place_and_make_spot_order` CPI removed). Spot taker orders now return `SpotOrdersNotSupported`.
+- program/ts: Anchor 0.29 → 1.0 migration (IDL format, `Context` single-lifetime, `CpiContext::new` takes a program id). `@velocity-exchange/sdk` replaces `@drift-labs/sdk`.
+- python: the Python SDK (`python/`) has been removed. It depended on upstream `driftpy` (drift program id, PDA seeds, and account layouts) and there is no Velocity Python SDK; use the TypeScript or Rust clients instead.
 
 ## [0.21.0] - 2025-09-16
 

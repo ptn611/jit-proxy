@@ -13,8 +13,11 @@ defaults:
 
 env:
   CARGO_TERM_COLOR: always
-  RUST_TOOLCHAIN: 1.62.0
-  SOLANA_VERSION: '1.14.16'
+  RUST_TOOLCHAIN: 1.91.1
+  SOLANA_VERSION: '2.3.11'
+  # solanafoundation/solana-verifiable-build tags lag behind agave releases;
+  # check https://hub.docker.com/r/solanafoundation/solana-verifiable-build/tags
+  VERIFIABLE_BUILD_IMAGE: solanafoundation/solana-verifiable-build:3.1.14
 
 jobs:
   verified-build:
@@ -26,12 +29,12 @@ jobs:
 
       - name: Install Solana Verify
         run: |
-          cargo install --version 0.2.13 solana-verify
+          cargo install solana-verify --version 0.4.11 --locked
           solana-verify --version
 
       - name: Verifiable Build
         run: |
-          solana-verify build --library-name jit_proxy --base-image ellipsislabs/solana:1.16.6
+          solana-verify build --library-name jit_proxy -b ${{ env.VERIFIABLE_BUILD_IMAGE }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

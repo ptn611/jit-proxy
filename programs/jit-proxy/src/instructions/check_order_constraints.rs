@@ -1,15 +1,15 @@
 use anchor_lang::prelude::*;
-use drift::instructions::optional_accounts::{load_maps, AccountMaps};
-use drift::math::casting::Cast;
-use drift::math::safe_math::SafeMath;
-use drift::state::user::User;
+use velocity::instructions::optional_accounts::{load_maps, AccountMaps};
+use velocity::math::casting::Cast;
+use velocity::math::safe_math::SafeMath;
+use velocity::state::user::User;
 use std::collections::BTreeSet;
 
 use crate::error::ErrorCode;
 use crate::state::MarketType;
 
 pub fn check_order_constraints<'c: 'info, 'info>(
-    ctx: Context<'_, '_, 'c, 'info, CheckOrderConstraints<'info>>,
+    ctx: Context<'info, CheckOrderConstraints<'info>>,
     constraints: Vec<OrderConstraint>,
 ) -> Result<()> {
     let clock = Clock::get()?;

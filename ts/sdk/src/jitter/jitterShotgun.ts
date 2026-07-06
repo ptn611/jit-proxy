@@ -2,7 +2,7 @@ import { JitProxyClient } from '../jitProxyClient';
 import { PublicKey } from '@solana/web3.js';
 import {
 	AuctionSubscriber,
-	DriftClient,
+	VelocityClient,
 	Order,
 	PostOnlyParams,
 	SlotSubscriber,
@@ -10,7 +10,7 @@ import {
 	SwiftOrderSubscriber,
 	UserAccount,
 	UserStatsMap,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import { BaseJitter } from './baseJitter';
 
 export class JitterShotgun extends BaseJitter {
@@ -23,7 +23,7 @@ export class JitterShotgun extends BaseJitter {
 		slotSubscriber,
 		auctionSubscriberIgnoresSwiftOrders,
 	}: {
-		driftClient: DriftClient;
+		driftClient: VelocityClient;
 		auctionSubscriber: AuctionSubscriber;
 		jitProxyClient: JitProxyClient;
 		userStatsMap?: UserStatsMap;

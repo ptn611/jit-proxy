@@ -25,4 +25,6 @@ pub enum ErrorCode {
     NoFill,
     #[msg("SignedMsgOrderDoesNotExist")]
     SignedMsgOrderDoesNotExist,
+    #[msg("SpotOrdersNotSupported")]
+    SpotOrdersNotSupported,
 }

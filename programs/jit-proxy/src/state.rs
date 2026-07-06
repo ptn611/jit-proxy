@@ -1,9 +1,8 @@
 use anchor_lang::prelude::*;
-use borsh::{BorshDeserialize, BorshSerialize};
-use drift::state::order_params::PostOnlyParam as DriftPostOnlyParam;
-use drift::state::user::MarketType as DriftMarketType;
+use velocity::state::order_params::PostOnlyParam as VelocityPostOnlyParam;
+use velocity::state::user::MarketType as VelocityMarketType;
 
-#[derive(Clone, Copy, BorshSerialize, BorshDeserialize, PartialEq, Debug, Eq)]
+#[derive(Clone, Copy, AnchorSerialize, AnchorDeserialize, PartialEq, Debug, Eq)]
 pub enum PostOnlyParam {
     None,
     MustPostOnly, // Tx fails if order can't be post only
@@ -12,33 +11,33 @@ pub enum PostOnlyParam {
 }
 
 impl PostOnlyParam {
-    pub fn to_drift_param(self) -> DriftPostOnlyParam {
+    pub fn to_velocity_param(self) -> VelocityPostOnlyParam {
         match self {
-            PostOnlyParam::None => DriftPostOnlyParam::None,
-            PostOnlyParam::MustPostOnly => DriftPostOnlyParam::MustPostOnly,
-            PostOnlyParam::TryPostOnly => DriftPostOnlyParam::TryPostOnly,
-            PostOnlyParam::Slide => DriftPostOnlyParam::Slide,
+            PostOnlyParam::None => VelocityPostOnlyParam::None,
+            PostOnlyParam::MustPostOnly => VelocityPostOnlyParam::MustPostOnly,
+            PostOnlyParam::TryPostOnly => VelocityPostOnlyParam::TryPostOnly,
+            PostOnlyParam::Slide => VelocityPostOnlyParam::Slide,
         }
     }
 }
 
-#[derive(Clone, Copy, BorshSerialize, BorshDeserialize, PartialEq, Debug, Eq)]
+#[derive(Clone, Copy, AnchorSerialize, AnchorDeserialize, PartialEq, Debug, Eq)]
 pub enum PriceType {
     Limit,
     Oracle,
 }
 
-#[derive(Clone, Copy, BorshSerialize, BorshDeserialize, PartialEq, Debug, Eq)]
+#[derive(Clone, Copy, AnchorSerialize, AnchorDeserialize, PartialEq, Debug, Eq)]
 pub enum MarketType {
     Perp,
     Spot,
 }
 
 impl MarketType {
-    pub fn to_drift_param(self) -> DriftMarketType {
+    pub fn to_velocity_param(self) -> VelocityMarketType {
         match self {
-            MarketType::Spot => DriftMarketType::Spot,
-            MarketType::Perp => DriftMarketType::Perp,
+            MarketType::Spot => VelocityMarketType::Spot,
+            MarketType::Perp => VelocityMarketType::Perp,
         }
     }
 }

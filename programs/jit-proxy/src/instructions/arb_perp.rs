@@ -1,27 +1,27 @@
 use anchor_lang::prelude::*;
-use drift::controller::position::PositionDirection;
-use drift::cpi::accounts::PlaceAndTake;
-use drift::error::DriftResult;
-use drift::instructions::optional_accounts::{load_maps, AccountMaps};
-use drift::math::casting::Cast;
-use drift::math::constants::{BASE_PRECISION, MARGIN_PRECISION_U128, QUOTE_PRECISION};
-use drift::math::margin::MarginRequirementType;
-use drift::program::Drift;
-use drift::state::order_params::{OrderParams, OrderParamsBitFlag, PostOnlyParam};
+use velocity::controller::position::PositionDirection;
+use velocity::cpi::accounts::PlaceAndTake;
+use velocity::error::VelocityResult;
+use velocity::instructions::optional_accounts::{load_maps, AccountMaps};
+use velocity::math::casting::Cast;
+use velocity::math::constants::{BASE_PRECISION, MARGIN_PRECISION_U128, QUOTE_PRECISION};
+use velocity::math::margin::MarginRequirementType;
+use velocity::program::Velocity;
+use velocity::state::order_params::{OrderParams, OrderParamsBitFlag, PostOnlyParam};
 use std::collections::BTreeSet;
 use std::ops::Deref;
 
-use drift::math::orders::find_bids_and_asks_from_users;
-use drift::math::safe_math::SafeMath;
-use drift::state::oracle::OraclePriceData;
-use drift::state::state::State;
-use drift::state::user::{MarketType, OrderTriggerCondition, OrderType, User, UserStats};
-use drift::state::user_map::load_user_maps;
+use velocity::math::orders::find_bids_and_asks_from_users;
+use velocity::math::safe_math::SafeMath;
+use velocity::state::oracle::OraclePriceData;
+use velocity::state::state::State;
+use velocity::state::user::{MarketType, OrderTriggerCondition, OrderType, User, UserStats};
+use velocity::state::user_map::load_user_maps;
 
 use crate::error::ErrorCode;
 
 pub fn arb_perp<'c: 'info, 'info>(
-    ctx: Context<'_, '_, 'c, 'info, ArbPerp<'info>>,
+    ctx: Context<'info, ArbPerp<'info>>,
     market_index: u16,
 ) -> Result<()> {
     let clock = Clock::get()?;
@@ -79,7 +79,6 @@ pub fn arb_perp<'c: 'info, 'info>(
     let init_margin_ratio = perp_market.get_margin_ratio(
         intermediate_base.unsigned_abs().cast()?,
         MarginRequirementType::Initial,
-        taker.is_high_leverage_mode(MarginRequirementType::Initial),
     )?;
 
     // assumes all free collateral in quote asset token
@@ -91,7 +90,7 @@ pub fn arb_perp<'c: 'info, 'info>(
 
     let base_asset_amount = base_asset_amount
         .min(max_base_asset_amount.cast()?)
-        .max(perp_market.amm.min_order_size);
+        .max(perp_market.market_stats.min_order_size);
 
     let get_order_params = |taker_direction: PositionDirection, taker_price: u64| -> OrderParams {
         OrderParams {
@@ -112,6 +111,8 @@ pub fn arb_perp<'c: 'info, 'info>(
             auction_duration: None,
             auction_start_price: None,
             auction_end_price: None,
+            builder_idx: None,
+            builder_fee_tenth_bps: None,
         }
     };
 
@@ -155,20 +156,20 @@ pub fn arb_perp<'c: 'info, 'info>(
 
 #[derive(Accounts)]
 pub struct ArbPerp<'info> {
-    pub state: Box<Account<'info, State>>,
+    pub state: AccountLoader<'info, State>,
     #[account(mut)]
     pub user: AccountLoader<'info, User>,
     #[account(mut)]
     pub user_stats: AccountLoader<'info, UserStats>,
     pub authority: Signer<'info>,
-    pub drift_program: Program<'info, Drift>,
+    pub drift_program: Program<'info, Velocity>,
 }
 
 fn calculate_max_base_asset_amount(
     quote_asset_token_amount: u128,
     init_margin_ratio: u32,
     oracle_price_data: &OraclePriceData,
-) -> DriftResult<u128> {
+) -> VelocityResult<u128> {
     quote_asset_token_amount
         .saturating_sub((quote_asset_token_amount / 100).min(10 * QUOTE_PRECISION)) // room for error
         .safe_mul(MARGIN_PRECISION_U128)?
@@ -178,11 +179,10 @@ fn calculate_max_base_asset_amount(
 }
 
 fn place_and_take<'info>(
-    ctx: &Context<'_, '_, '_, 'info, ArbPerp<'info>>,
+    ctx: &Context<'info, ArbPerp<'info>>,
     orders_params: Vec<OrderParams>,
 ) -> Result<()> {
     for order_params in orders_params {
-        let drift_program = ctx.accounts.drift_program.to_account_info().clone();
         let cpi_accounts = PlaceAndTake {
             state: ctx.accounts.state.to_account_info().clone(),
             user: ctx.accounts.user.to_account_info().clone(),
@@ -190,10 +190,10 @@ fn place_and_take<'info>(
             authority: ctx.accounts.authority.to_account_info().clone(),
         };
 
-        let cpi_context = CpiContext::new(drift_program, cpi_accounts)
+        let cpi_context = CpiContext::new(ctx.accounts.drift_program.key(), cpi_accounts)
             .with_remaining_accounts(ctx.remaining_accounts.into());
 
-        drift::cpi::place_and_take_perp_order(cpi_context, order_params, None)?;
+        velocity::cpi::place_and_take_perp_order(cpi_context, order_params, None)?;
     }
 
     Ok(())
@@ -201,8 +201,8 @@ fn place_and_take<'info>(
 
 #[cfg(test)]
 mod test {
-    use drift::math::constants::{MARGIN_PRECISION, PRICE_PRECISION_I64, QUOTE_PRECISION};
-    use drift::state::oracle::OraclePriceData;
+    use velocity::math::constants::{MARGIN_PRECISION, PRICE_PRECISION_I64, QUOTE_PRECISION};
+    use velocity::state::oracle::OraclePriceData;
 
     #[test]
     pub fn calculate_max_base_asset_amount() {

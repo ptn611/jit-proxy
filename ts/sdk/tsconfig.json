@@ -4,10 +4,16 @@
 		"target": "ES2019",
 		"esModuleInterop": true,
 		"declaration": true,
+		"declarationMap": true,
+		"sourceMap": true,
 		"outDir": "./lib",
+		"rootDir": "src",
+		"moduleResolution": "node",
+		"forceConsistentCasingInFileNames": true,
 		"resolveJsonModule": true,
-		"skipLibCheck": true
+		"skipLibCheck": true,
+		"types": ["node"]
 	},
-	"include": ["src"],
-	"exclude": ["node_modules", "tests"]
+	"include": ["src/**/*"],
+	"exclude": ["lib", "node_modules", "tests", "**/*.test.ts"]
 }

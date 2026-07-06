@@ -3,7 +3,7 @@ import { PublicKey } from '@solana/web3.js';
 import {
 	AuctionSubscriber,
 	convertToNumber,
-	DriftClient,
+	VelocityClient,
 	getAuctionPrice,
 	getAuctionPriceForOracleOffsetAuction,
 	getLimitPrice,
@@ -19,7 +19,7 @@ import {
 	UserAccount,
 	UserStatsMap,
 	ZERO,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import { BaseJitter } from './baseJitter';
 
 type AuctionAndOrderDetails = {
@@ -46,7 +46,7 @@ export class JitterSniper extends BaseJitter {
 		swiftOrderSubscriber,
 		auctionSubscriberIgnoresSwiftOrders,
 	}: {
-		driftClient: DriftClient;
+		driftClient: VelocityClient;
 		slotSubscriber: SlotSubscriber;
 		auctionSubscriber: AuctionSubscriber;
 		jitProxyClient: JitProxyClient;
@@ -141,8 +141,8 @@ export class JitterSniper extends BaseJitter {
 				}, Order slot: ${order.slot.toNumber()},
 				Will cross?: ${willCross}
 				Slots to wait: ${slotsTilCross}. Target slot = ${
-				order.slot.toNumber() + slotsTilCross
-			}
+					order.slot.toNumber() + slotsTilCross
+				}
 			`);
 
 			this.waitForSlotOrCrossOrExpiry(
@@ -192,9 +192,9 @@ export class JitterSniper extends BaseJitter {
 					market: ${bid}@${ask}
 					auction price: ${auctionPrice}
 					submitting" ${convertToNumber(params.bid, PRICE_PRECISION)}@${convertToNumber(
-					params.ask,
-					PRICE_PRECISION
-				)}
+						params.ask,
+						PRICE_PRECISION
+					)}
 				`);
 				let i = 0;
 				while (i < 10) {
@@ -327,8 +327,8 @@ export class JitterSniper extends BaseJitter {
 				}, Order slot: ${order.slot.toNumber()},
 				Will cross?: ${willCross}
 				Slots to wait: ${slotsTilCross}. Target slot = ${
-				order.slot.toNumber() + slotsTilCross
-			}
+					order.slot.toNumber() + slotsTilCross
+				}
 			`);
 
 			this.waitForSlotOrCrossOrExpiry(
@@ -378,9 +378,9 @@ export class JitterSniper extends BaseJitter {
 					market: ${bid}@${ask}
 					auction price: ${auctionPrice}
 					submitting" ${convertToNumber(params.bid, PRICE_PRECISION)}@${convertToNumber(
-					params.ask,
-					PRICE_PRECISION
-				)}
+						params.ask,
+						PRICE_PRECISION
+					)}
 				`);
 				let i = 0;
 				while (i < 10) {

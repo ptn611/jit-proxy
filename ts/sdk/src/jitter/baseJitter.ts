@@ -5,7 +5,7 @@ import {
 	AuctionSubscriber,
 	BN,
 	BulkAccountLoader,
-	DriftClient,
+	VelocityClient,
 	getAuctionPrice,
 	getUserAccountPublicKey,
 	getUserStatsAccountPublicKey,
@@ -27,7 +27,7 @@ import {
 	SignedMsgOrderParamsDelegateMessage,
 	SignedMsgOrderParamsMessage,
 	OrderParamsBitFlag,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import { decodeUTF8 } from 'tweetnacl-util';
 
 export type UserFilter = (
@@ -50,7 +50,7 @@ export abstract class BaseJitter {
 	auctionSubscriber: AuctionSubscriber;
 	swiftOrderSubscriber: SwiftOrderSubscriber;
 	slotSubscriber: SlotSubscriber;
-	driftClient: DriftClient;
+	driftClient: VelocityClient;
 	jitProxyClient: JitProxyClient;
 	auctionSubscriberIgnoresSwiftOrders?: boolean;
 	userStatsMap: UserStatsMap;
@@ -75,7 +75,7 @@ export abstract class BaseJitter {
 		slotSubscriber,
 		auctionSubscriberIgnoresSwiftOrders,
 	}: {
-		driftClient: DriftClient;
+		driftClient: VelocityClient;
 		auctionSubscriber: AuctionSubscriber;
 		jitProxyClient: JitProxyClient;
 		userStatsMap: UserStatsMap;
@@ -164,13 +164,11 @@ export abstract class BaseJitter {
 							return;
 						}
 
-						const perpMarketAccount = this.driftClient.getPerpMarketAccount(
-							order.marketIndex
-						);
+						// Velocity perp markets have no min order size (amm.minOrderSize
+						// was removed from the program vs Drift), so the upstream dust
+						// guard collapses to "skip only fully-filled orders".
 						if (
-							order.baseAssetAmount
-								.sub(order.baseAssetAmountFilled)
-								.lte(perpMarketAccount.amm.minOrderSize)
+							order.baseAssetAmount.sub(order.baseAssetAmountFilled).lte(ZERO)
 						) {
 							return;
 						}
@@ -280,7 +278,8 @@ export abstract class BaseJitter {
 					bitFlags: signedMsgOrderParams.bitFlags,
 					direction: signedMsgOrderParams.direction,
 					postOnly: false,
-					oraclePriceOffset: signedMsgOrderParams.oraclePriceOffset ?? 0,
+					oraclePriceOffset:
+						signedMsgOrderParams.oraclePriceOffset ?? new BN(0),
 					maxTs: signedMsgOrderParams.maxTs ?? ZERO,
 					reduceOnly: signedMsgOrderParams.reduceOnly ?? false,
 					triggerCondition:
@@ -293,7 +292,6 @@ export abstract class BaseJitter {
 					triggerPrice: ZERO,
 					baseAssetAmountFilled: ZERO,
 					quoteAssetAmountFilled: ZERO,
-					quoteAssetAmount: ZERO,
 					postedSlotTail: 0,
 				};
 
@@ -327,12 +325,9 @@ export abstract class BaseJitter {
 					return;
 				}
 
-				const perpMarketAccount = this.driftClient.getPerpMarketAccount(
-					signedMsgOrder.marketIndex
-				);
-				if (
-					signedMsgOrder.baseAssetAmount.lt(perpMarketAccount.amm.minOrderSize)
-				) {
+				// Velocity perp markets have no min order size (see above); only a
+				// zero-size order needs skipping here.
+				if (signedMsgOrder.baseAssetAmount.lte(ZERO)) {
 					return;
 				}
 

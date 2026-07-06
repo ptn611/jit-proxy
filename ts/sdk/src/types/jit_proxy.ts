@@ -1,168 +1,217 @@
+/**
+ * Program IDL in camelCase format in order to be used in JS/TS.
+ *
+ * Note that this is only a type helper and is not the actual IDL. The original
+ * IDL can be found at `target/idl/jit_proxy.json`.
+ */
 export type JitProxy = {
-	version: '0.21.0';
-	name: 'jit_proxy';
+	address: 'J1TnP8zvVxbtF5KFp5xRmWuvG9McnhzmBd9XGfCyuxFP';
+	metadata: {
+		name: 'jitProxy';
+		version: '0.21.0';
+		spec: '0.1.0';
+	};
 	instructions: [
 		{
 			name: 'jit';
+			discriminator: [99, 42, 97, 140, 152, 62, 167, 234];
 			accounts: [
 				{
 					name: 'state';
-					isMut: false;
-					isSigner: false;
 				},
 				{
 					name: 'user';
-					isMut: true;
-					isSigner: false;
+					writable: true;
 				},
 				{
 					name: 'userStats';
-					isMut: true;
-					isSigner: false;
+					writable: true;
 				},
 				{
 					name: 'taker';
-					isMut: true;
-					isSigner: false;
+					writable: true;
 				},
 				{
 					name: 'takerStats';
-					isMut: true;
-					isSigner: false;
+					writable: true;
 				},
 				{
 					name: 'authority';
-					isMut: false;
-					isSigner: true;
+					signer: true;
 				},
 				{
 					name: 'driftProgram';
-					isMut: false;
-					isSigner: false;
-				}
+				},
 			];
 			args: [
 				{
 					name: 'params';
 					type: {
-						defined: 'JitParams';
+						defined: {
+							name: 'jitParams';
+						};
 					};
-				}
+				},
 			];
 		},
 		{
 			name: 'jitSignedMsg';
+			discriminator: [134, 130, 156, 72, 37, 120, 153, 21];
 			accounts: [
 				{
 					name: 'state';
-					isMut: false;
-					isSigner: false;
 				},
 				{
 					name: 'user';
-					isMut: true;
-					isSigner: false;
+					writable: true;
 				},
 				{
 					name: 'userStats';
-					isMut: true;
-					isSigner: false;
+					writable: true;
 				},
 				{
 					name: 'taker';
-					isMut: true;
-					isSigner: false;
+					writable: true;
 				},
 				{
 					name: 'takerStats';
-					isMut: true;
-					isSigner: false;
+					writable: true;
 				},
 				{
 					name: 'takerSignedMsgUserOrders';
-					isMut: true;
-					isSigner: false;
+					writable: true;
 				},
 				{
 					name: 'authority';
-					isMut: false;
-					isSigner: true;
+					signer: true;
 				},
 				{
 					name: 'driftProgram';
-					isMut: false;
-					isSigner: false;
-				}
+				},
 			];
 			args: [
 				{
 					name: 'params';
 					type: {
-						defined: 'JitSignedMsgParams';
+						defined: {
+							name: 'jitSignedMsgParams';
+						};
 					};
-				}
+				},
 			];
 		},
 		{
 			name: 'checkOrderConstraints';
+			discriminator: [183, 174, 142, 245, 5, 29, 207, 2];
 			accounts: [
 				{
 					name: 'user';
-					isMut: false;
-					isSigner: false;
-				}
+				},
 			];
 			args: [
 				{
 					name: 'constraints';
 					type: {
 						vec: {
-							defined: 'OrderConstraint';
+							defined: {
+								name: 'orderConstraint';
+							};
 						};
 					};
-				}
+				},
 			];
 		},
 		{
 			name: 'arbPerp';
+			discriminator: [116, 105, 138, 99, 28, 171, 39, 225];
 			accounts: [
 				{
 					name: 'state';
-					isMut: false;
-					isSigner: false;
 				},
 				{
 					name: 'user';
-					isMut: true;
-					isSigner: false;
+					writable: true;
 				},
 				{
 					name: 'userStats';
-					isMut: true;
-					isSigner: false;
+					writable: true;
 				},
 				{
 					name: 'authority';
-					isMut: false;
-					isSigner: true;
+					signer: true;
 				},
 				{
 					name: 'driftProgram';
-					isMut: false;
-					isSigner: false;
-				}
+				},
 			];
 			args: [
 				{
 					name: 'marketIndex';
 					type: 'u16';
-				}
+				},
 			];
-		}
+		},
+	];
+	errors: [
+		{
+			code: 6000;
+			name: 'bidNotCrossed';
+			msg: 'bidNotCrossed';
+		},
+		{
+			code: 6001;
+			name: 'askNotCrossed';
+			msg: 'askNotCrossed';
+		},
+		{
+			code: 6002;
+			name: 'takerOrderNotFound';
+			msg: 'takerOrderNotFound';
+		},
+		{
+			code: 6003;
+			name: 'orderSizeBreached';
+			msg: 'orderSizeBreached';
+		},
+		{
+			code: 6004;
+			name: 'noBestBid';
+			msg: 'noBestBid';
+		},
+		{
+			code: 6005;
+			name: 'noBestAsk';
+			msg: 'noBestAsk';
+		},
+		{
+			code: 6006;
+			name: 'noArbOpportunity';
+			msg: 'noArbOpportunity';
+		},
+		{
+			code: 6007;
+			name: 'unprofitableArb';
+			msg: 'unprofitableArb';
+		},
+		{
+			code: 6008;
+			name: 'positionLimitBreached';
+			msg: 'positionLimitBreached';
+		},
+		{
+			code: 6009;
+			name: 'noFill';
+			msg: 'noFill';
+		},
+		{
+			code: 6010;
+			name: 'signedMsgOrderDoesNotExist';
+			msg: 'signedMsgOrderDoesNotExist';
+		},
 	];
 	types: [
 		{
-			name: 'OrderConstraint';
+			name: 'orderConstraint';
 			type: {
 				kind: 'struct';
 				fields: [
@@ -181,14 +230,16 @@ export type JitProxy = {
 					{
 						name: 'marketType';
 						type: {
-							defined: 'MarketType';
+							defined: {
+								name: 'marketType';
+							};
 						};
-					}
+					},
 				];
 			};
 		},
 		{
-			name: 'JitParams';
+			name: 'jitParams';
 			type: {
 				kind: 'struct';
 				fields: [
@@ -215,22 +266,26 @@ export type JitProxy = {
 					{
 						name: 'priceType';
 						type: {
-							defined: 'PriceType';
+							defined: {
+								name: 'priceType';
+							};
 						};
 					},
 					{
 						name: 'postOnly';
 						type: {
 							option: {
-								defined: 'PostOnlyParam';
+								defined: {
+									name: 'postOnlyParam';
+								};
 							};
 						};
-					}
+					},
 				];
 			};
 		},
 		{
-			name: 'JitSignedMsgParams';
+			name: 'jitSignedMsgParams';
 			type: {
 				kind: 'struct';
 				fields: [
@@ -259,507 +314,71 @@ export type JitProxy = {
 					{
 						name: 'priceType';
 						type: {
-							defined: 'PriceType';
+							defined: {
+								name: 'priceType';
+							};
 						};
 					},
 					{
 						name: 'postOnly';
 						type: {
 							option: {
-								defined: 'PostOnlyParam';
+								defined: {
+									name: 'postOnlyParam';
+								};
 							};
 						};
-					}
+					},
 				];
 			};
 		},
 		{
-			name: 'PostOnlyParam';
+			name: 'postOnlyParam';
 			type: {
 				kind: 'enum';
 				variants: [
 					{
-						name: 'None';
+						name: 'none';
 					},
 					{
-						name: 'MustPostOnly';
+						name: 'mustPostOnly';
 					},
 					{
-						name: 'TryPostOnly';
+						name: 'tryPostOnly';
 					},
 					{
-						name: 'Slide';
-					}
+						name: 'slide';
+					},
 				];
 			};
 		},
 		{
-			name: 'PriceType';
+			name: 'priceType';
 			type: {
 				kind: 'enum';
 				variants: [
 					{
-						name: 'Limit';
+						name: 'limit';
 					},
 					{
-						name: 'Oracle';
-					}
+						name: 'oracle';
+					},
 				];
 			};
 		},
 		{
-			name: 'MarketType';
+			name: 'marketType';
 			type: {
 				kind: 'enum';
 				variants: [
 					{
-						name: 'Perp';
+						name: 'perp';
 					},
 					{
-						name: 'Spot';
-					}
+						name: 'spot';
+					},
 				];
 			};
-		}
+		},
 	];
-	errors: [
-		{
-			code: 6000;
-			name: 'BidNotCrossed';
-			msg: 'BidNotCrossed';
-		},
-		{
-			code: 6001;
-			name: 'AskNotCrossed';
-			msg: 'AskNotCrossed';
-		},
-		{
-			code: 6002;
-			name: 'TakerOrderNotFound';
-			msg: 'TakerOrderNotFound';
-		},
-		{
-			code: 6003;
-			name: 'OrderSizeBreached';
-			msg: 'OrderSizeBreached';
-		},
-		{
-			code: 6004;
-			name: 'NoBestBid';
-			msg: 'NoBestBid';
-		},
-		{
-			code: 6005;
-			name: 'NoBestAsk';
-			msg: 'NoBestAsk';
-		},
-		{
-			code: 6006;
-			name: 'NoArbOpportunity';
-			msg: 'NoArbOpportunity';
-		},
-		{
-			code: 6007;
-			name: 'UnprofitableArb';
-			msg: 'UnprofitableArb';
-		},
-		{
-			code: 6008;
-			name: 'PositionLimitBreached';
-			msg: 'PositionLimitBreached';
-		},
-		{
-			code: 6009;
-			name: 'NoFill';
-			msg: 'NoFill';
-		},
-		{
-			code: 6010;
-			name: 'SignedMsgOrderDoesNotExist';
-			msg: 'SignedMsgOrderDoesNotExist';
-		}
-	];
-};
-
-export const IDL: JitProxy = {
-	version: '0.21.0',
-	name: 'jit_proxy',
-	instructions: [
-		{
-			name: 'jit',
-			accounts: [
-				{
-					name: 'state',
-					isMut: false,
-					isSigner: false,
-				},
-				{
-					name: 'user',
-					isMut: true,
-					isSigner: false,
-				},
-				{
-					name: 'userStats',
-					isMut: true,
-					isSigner: false,
-				},
-				{
-					name: 'taker',
-					isMut: true,
-					isSigner: false,
-				},
-				{
-					name: 'takerStats',
-					isMut: true,
-					isSigner: false,
-				},
-				{
-					name: 'authority',
-					isMut: false,
-					isSigner: true,
-				},
-				{
-					name: 'driftProgram',
-					isMut: false,
-					isSigner: false,
-				},
-			],
-			args: [
-				{
-					name: 'params',
-					type: {
-						defined: 'JitParams',
-					},
-				},
-			],
-		},
-		{
-			name: 'jitSignedMsg',
-			accounts: [
-				{
-					name: 'state',
-					isMut: false,
-					isSigner: false,
-				},
-				{
-					name: 'user',
-					isMut: true,
-					isSigner: false,
-				},
-				{
-					name: 'userStats',
-					isMut: true,
-					isSigner: false,
-				},
-				{
-					name: 'taker',
-					isMut: true,
-					isSigner: false,
-				},
-				{
-					name: 'takerStats',
-					isMut: true,
-					isSigner: false,
-				},
-				{
-					name: 'takerSignedMsgUserOrders',
-					isMut: true,
-					isSigner: false,
-				},
-				{
-					name: 'authority',
-					isMut: false,
-					isSigner: true,
-				},
-				{
-					name: 'driftProgram',
-					isMut: false,
-					isSigner: false,
-				},
-			],
-			args: [
-				{
-					name: 'params',
-					type: {
-						defined: 'JitSignedMsgParams',
-					},
-				},
-			],
-		},
-		{
-			name: 'checkOrderConstraints',
-			accounts: [
-				{
-					name: 'user',
-					isMut: false,
-					isSigner: false,
-				},
-			],
-			args: [
-				{
-					name: 'constraints',
-					type: {
-						vec: {
-							defined: 'OrderConstraint',
-						},
-					},
-				},
-			],
-		},
-		{
-			name: 'arbPerp',
-			accounts: [
-				{
-					name: 'state',
-					isMut: false,
-					isSigner: false,
-				},
-				{
-					name: 'user',
-					isMut: true,
-					isSigner: false,
-				},
-				{
-					name: 'userStats',
-					isMut: true,
-					isSigner: false,
-				},
-				{
-					name: 'authority',
-					isMut: false,
-					isSigner: true,
-				},
-				{
-					name: 'driftProgram',
-					isMut: false,
-					isSigner: false,
-				},
-			],
-			args: [
-				{
-					name: 'marketIndex',
-					type: 'u16',
-				},
-			],
-		},
-	],
-	types: [
-		{
-			name: 'OrderConstraint',
-			type: {
-				kind: 'struct',
-				fields: [
-					{
-						name: 'maxPosition',
-						type: 'i64',
-					},
-					{
-						name: 'minPosition',
-						type: 'i64',
-					},
-					{
-						name: 'marketIndex',
-						type: 'u16',
-					},
-					{
-						name: 'marketType',
-						type: {
-							defined: 'MarketType',
-						},
-					},
-				],
-			},
-		},
-		{
-			name: 'JitParams',
-			type: {
-				kind: 'struct',
-				fields: [
-					{
-						name: 'takerOrderId',
-						type: 'u32',
-					},
-					{
-						name: 'maxPosition',
-						type: 'i64',
-					},
-					{
-						name: 'minPosition',
-						type: 'i64',
-					},
-					{
-						name: 'bid',
-						type: 'i64',
-					},
-					{
-						name: 'ask',
-						type: 'i64',
-					},
-					{
-						name: 'priceType',
-						type: {
-							defined: 'PriceType',
-						},
-					},
-					{
-						name: 'postOnly',
-						type: {
-							option: {
-								defined: 'PostOnlyParam',
-							},
-						},
-					},
-				],
-			},
-		},
-		{
-			name: 'JitSignedMsgParams',
-			type: {
-				kind: 'struct',
-				fields: [
-					{
-						name: 'signedMsgOrderUuid',
-						type: {
-							array: ['u8', 8],
-						},
-					},
-					{
-						name: 'maxPosition',
-						type: 'i64',
-					},
-					{
-						name: 'minPosition',
-						type: 'i64',
-					},
-					{
-						name: 'bid',
-						type: 'i64',
-					},
-					{
-						name: 'ask',
-						type: 'i64',
-					},
-					{
-						name: 'priceType',
-						type: {
-							defined: 'PriceType',
-						},
-					},
-					{
-						name: 'postOnly',
-						type: {
-							option: {
-								defined: 'PostOnlyParam',
-							},
-						},
-					},
-				],
-			},
-		},
-		{
-			name: 'PostOnlyParam',
-			type: {
-				kind: 'enum',
-				variants: [
-					{
-						name: 'None',
-					},
-					{
-						name: 'MustPostOnly',
-					},
-					{
-						name: 'TryPostOnly',
-					},
-					{
-						name: 'Slide',
-					},
-				],
-			},
-		},
-		{
-			name: 'PriceType',
-			type: {
-				kind: 'enum',
-				variants: [
-					{
-						name: 'Limit',
-					},
-					{
-						name: 'Oracle',
-					},
-				],
-			},
-		},
-		{
-			name: 'MarketType',
-			type: {
-				kind: 'enum',
-				variants: [
-					{
-						name: 'Perp',
-					},
-					{
-						name: 'Spot',
-					},
-				],
-			},
-		},
-	],
-	errors: [
-		{
-			code: 6000,
-			name: 'BidNotCrossed',
-			msg: 'BidNotCrossed',
-		},
-		{
-			code: 6001,
-			name: 'AskNotCrossed',
-			msg: 'AskNotCrossed',
-		},
-		{
-			code: 6002,
-			name: 'TakerOrderNotFound',
-			msg: 'TakerOrderNotFound',
-		},
-		{
-			code: 6003,
-			name: 'OrderSizeBreached',
-			msg: 'OrderSizeBreached',
-		},
-		{
-			code: 6004,
-			name: 'NoBestBid',
-			msg: 'NoBestBid',
-		},
-		{
-			code: 6005,
-			name: 'NoBestAsk',
-			msg: 'NoBestAsk',
-		},
-		{
-			code: 6006,
-			name: 'NoArbOpportunity',
-			msg: 'NoArbOpportunity',
-		},
-		{
-			code: 6007,
-			name: 'UnprofitableArb',
-			msg: 'UnprofitableArb',
-		},
-		{
-			code: 6008,
-			name: 'PositionLimitBreached',
-			msg: 'PositionLimitBreached',
-		},
-		{
-			code: 6009,
-			name: 'NoFill',
-			msg: 'NoFill',
-		},
-		{
-			code: 6010,
-			name: 'SignedMsgOrderDoesNotExist',
-			msg: 'SignedMsgOrderDoesNotExist',
-		},
-	],
 };

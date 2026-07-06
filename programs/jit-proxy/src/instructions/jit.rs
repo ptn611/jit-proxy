@@ -1,28 +1,28 @@
 use anchor_lang::prelude::Pubkey;
 use anchor_lang::prelude::*;
-use drift::controller::position::PositionDirection;
-use drift::cpi::accounts::{PlaceAndMake, PlaceAndMakeSignedMsg};
-use drift::error::DriftResult;
-use drift::instructions::optional_accounts::{load_maps, AccountMaps};
-use drift::math::casting::Cast;
-use drift::math::safe_math::SafeMath;
-use drift::program::Drift;
-use drift::state::order_params::{OrderParams, OrderParamsBitFlag};
-use drift::state::perp_market_map::PerpMarketMap;
-use drift::state::signed_msg_user::SignedMsgUserOrdersLoader;
-use drift::state::spot_market_map::SpotMarketMap;
-use drift::state::state::State;
-use drift::state::user::Order;
-use drift::state::user::{MarketType as DriftMarketType, OrderTriggerCondition, OrderType};
-use drift::state::user::{User, UserStats};
+use velocity::controller::position::PositionDirection;
+use velocity::cpi::accounts::{PlaceAndMake, PlaceAndMakeSignedMsg};
+use velocity::error::VelocityResult;
+use velocity::instructions::optional_accounts::{load_maps, AccountMaps};
+use velocity::math::casting::Cast;
+use velocity::math::safe_math::SafeMath;
+use velocity::program::Velocity;
+use velocity::state::order_params::{OrderParams, OrderParamsBitFlag};
+use velocity::state::perp_market_map::PerpMarketMap;
+use velocity::state::signed_msg_user::SignedMsgUserOrdersLoader;
+use velocity::state::spot_market_map::SpotMarketMap;
+use velocity::state::state::State;
+use velocity::state::user::Order;
+use velocity::state::user::{MarketType as VelocityMarketType, OrderTriggerCondition, OrderType};
+use velocity::state::user::{User, UserStats};
 use std::collections::BTreeSet;
 
 use crate::error::ErrorCode;
 use crate::state::PriceType;
-use drift::state::order_params::PostOnlyParam;
+use velocity::state::order_params::PostOnlyParam;
 
 pub fn jit<'c: 'info, 'info>(
-    ctx: Context<'_, '_, 'c, 'info, Jit<'info>>,
+    ctx: Context<'info, Jit<'info>>,
     params: JitParams,
 ) -> Result<()> {
     let clock = Clock::get()?;
@@ -31,7 +31,7 @@ pub fn jit<'c: 'info, 'info>(
     let taker = ctx.accounts.taker.load()?;
     let maker = ctx.accounts.user.load()?;
 
-    let state = &ctx.accounts.state;
+    let state = ctx.accounts.state.load()?;
 
     let remaining_accounts_iter = &mut ctx.remaining_accounts.iter().peekable();
     let AccountMaps {
@@ -52,7 +52,7 @@ pub fn jit<'c: 'info, 'info>(
     let market_type = taker_order.market_type;
     let market_index = taker_order.market_index;
 
-    let oracle_price = if taker_order.market_type == DriftMarketType::Perp {
+    let oracle_price = if taker_order.market_type == VelocityMarketType::Perp {
         let perp_market = perp_market_map.get_ref(&taker_order.market_index)?;
         perp_market
             .get_mm_oracle_price_data(
@@ -100,10 +100,15 @@ pub fn jit<'c: 'info, 'info>(
             oracle_price
         );
         msg!("jit params {:?}", params);
-        if market_type == DriftMarketType::Perp {
+        if market_type == VelocityMarketType::Perp {
             let perp_market = perp_market_map.get_ref(&market_index)?;
             let reserve_price = perp_market.amm.reserve_price()?;
-            let (bid_price, ask_price) = perp_market.amm.bid_ask_price(reserve_price)?;
+            let (bid_price, ask_price) = perp_market.amm.bid_ask_price(
+                reserve_price,
+                perp_market.amm.long_spread,
+                perp_market.amm.short_spread,
+                perp_market.amm.reference_price_offset,
+            )?;
             msg!(
                 "vamm bid price = {} vamm ask price = {}",
                 bid_price,
@@ -117,7 +122,7 @@ pub fn jit<'c: 'info, 'info>(
 }
 
 pub fn jit_signed_msg<'c: 'info, 'info>(
-    ctx: Context<'_, '_, 'c, 'info, JitSignedMsg<'info>>,
+    ctx: Context<'info, JitSignedMsg<'info>>,
     params: JitSignedMsgParams,
 ) -> Result<()> {
     let clock = Clock::get()?;
@@ -126,7 +131,7 @@ pub fn jit_signed_msg<'c: 'info, 'info>(
     let taker = ctx.accounts.taker.load()?;
     let maker = ctx.accounts.user.load()?;
 
-    let state = &ctx.accounts.state;
+    let state = ctx.accounts.state.load()?;
 
     let taker_signed_msg_account = ctx.accounts.taker_signed_msg_user_orders.load()?;
     let taker_order_id = taker_signed_msg_account
@@ -198,7 +203,12 @@ pub fn jit_signed_msg<'c: 'info, 'info>(
 
         let perp_market = perp_market_map.get_ref(&order_params.market_index)?;
         let reserve_price = perp_market.amm.reserve_price()?;
-        let (bid_price, ask_price) = perp_market.amm.bid_ask_price(reserve_price)?;
+        let (bid_price, ask_price) = perp_market.amm.bid_ask_price(
+            reserve_price,
+            perp_market.amm.long_spread,
+            perp_market.amm.short_spread,
+            perp_market.amm.reference_price_offset,
+        )?;
         msg!(
             "vamm bid price = {} vamm ask price = {}",
             bid_price,
@@ -250,42 +260,37 @@ fn process_order(
         taker_order.oracle_price_offset
     );
 
-    let (tick_size, min_order_size, is_prediction_market) = if market_type == DriftMarketType::Perp
-    {
+    let (tick_size, min_order_size) = if market_type == VelocityMarketType::Perp {
         let perp_market = perp_market_map.get_ref(&market_index)?;
 
         (
-            perp_market.amm.order_tick_size,
-            perp_market.amm.min_order_size,
-            perp_market.is_prediction_market(),
+            perp_market.order_tick_size,
+            perp_market.market_stats.min_order_size,
         )
     } else {
         let spot_market = spot_market_map.get_ref(&market_index)?;
 
-        (
-            spot_market.order_tick_size,
-            spot_market.min_order_size,
-            false,
-        )
+        (spot_market.order_tick_size, spot_market.min_order_size)
     };
 
-    let taker_price = match taker_order.get_limit_price(
-        Some(oracle_price),
-        None,
-        slot,
-        tick_size,
-        is_prediction_market,
-        None,
-    )? {
+    let taker_price = match taker_order.get_limit_price(Some(oracle_price), None, slot, tick_size)? {
         Some(price) => price,
-        None if market_type == DriftMarketType::Perp => {
+        None if market_type == VelocityMarketType::Perp => {
             msg!("taker order didnt have price. deriving fallback");
-            // if the order doesn't have a price, drift users amm price for taker price
+            // if the order doesn't have a price, velocity uses amm price for taker price
             let perp_market = perp_market_map.get_ref(&market_index)?;
             let reserve_price = perp_market.amm.reserve_price()?;
             match taker_direction {
-                PositionDirection::Long => perp_market.amm.ask_price(reserve_price)?,
-                PositionDirection::Short => perp_market.amm.bid_price(reserve_price)?,
+                PositionDirection::Long => perp_market.amm.ask_price(
+                    reserve_price,
+                    perp_market.amm.long_spread,
+                    perp_market.amm.reference_price_offset,
+                )?,
+                PositionDirection::Short => perp_market.amm.bid_price(
+                    reserve_price,
+                    perp_market.amm.short_spread,
+                    perp_market.amm.reference_price_offset,
+                )?,
             }
         }
         None => {
@@ -319,13 +324,17 @@ fn process_order(
         }
     }
 
-    let maker_price = if market_type == DriftMarketType::Perp {
+    let maker_price = if market_type == VelocityMarketType::Perp {
         let perp_market = perp_market_map.get_ref(&market_index)?;
         let reserve_price = perp_market.amm.reserve_price()?;
 
         match maker_direction {
             PositionDirection::Long => {
-                let amm_bid_price = perp_market.amm.bid_price(reserve_price)?;
+                let amm_bid_price = perp_market.amm.bid_price(
+                    reserve_price,
+                    perp_market.amm.short_spread,
+                    perp_market.amm.reference_price_offset,
+                )?;
 
                 // if amm price is better than maker, use amm price to ensure fill
                 if taker_price <= amm_bid_price {
@@ -335,7 +344,11 @@ fn process_order(
                 }
             }
             PositionDirection::Short => {
-                let amm_ask_price = perp_market.amm.ask_price(reserve_price)?;
+                let amm_ask_price = perp_market.amm.ask_price(
+                    reserve_price,
+                    perp_market.amm.long_spread,
+                    perp_market.amm.reference_price_offset,
+                )?;
 
                 if taker_price >= amm_ask_price {
                     amm_ask_price.max(maker_worst_price)
@@ -351,7 +364,7 @@ fn process_order(
     let taker_base_asset_amount_unfilled = taker_order
         .get_base_asset_amount_unfilled(None)?
         .max(min_order_size);
-    let maker_existing_position = if market_type == DriftMarketType::Perp {
+    let maker_existing_position = if market_type == VelocityMarketType::Perp {
         let perp_position = maker.get_perp_position(market_index);
         match perp_position {
             Ok(perp_position) => perp_position.base_asset_amount,
@@ -397,6 +410,8 @@ fn process_order(
         auction_duration: None,
         auction_start_price: None,
         auction_end_price: None,
+        builder_idx: None,
+        builder_fee_tenth_bps: None,
     };
     Ok((
         order_params,
@@ -408,7 +423,7 @@ fn process_order(
 
 #[derive(Accounts)]
 pub struct Jit<'info> {
-    pub state: Box<Account<'info, State>>,
+    pub state: AccountLoader<'info, State>,
     #[account(mut)]
     pub user: AccountLoader<'info, User>,
     #[account(mut)]
@@ -418,12 +433,12 @@ pub struct Jit<'info> {
     #[account(mut)]
     pub taker_stats: AccountLoader<'info, UserStats>,
     pub authority: Signer<'info>,
-    pub drift_program: Program<'info, Drift>,
+    pub drift_program: Program<'info, Velocity>,
 }
 
 #[derive(Accounts)]
 pub struct JitSignedMsg<'info> {
-    pub state: Box<Account<'info, State>>,
+    pub state: AccountLoader<'info, State>,
     #[account(mut)]
     pub user: AccountLoader<'info, User>,
     #[account(mut)]
@@ -436,7 +451,7 @@ pub struct JitSignedMsg<'info> {
     #[account(mut)]
     pub taker_signed_msg_user_orders: AccountInfo<'info>,
     pub authority: Signer<'info>,
-    pub drift_program: Program<'info, Drift>,
+    pub drift_program: Program<'info, Velocity>,
 }
 
 #[derive(Debug, Clone, Copy, AnchorSerialize, AnchorDeserialize, PartialEq, Eq)]
@@ -469,7 +484,7 @@ impl JitParams {
         self,
         oracle_price: i64,
         taker_direction: PositionDirection,
-    ) -> DriftResult<u64> {
+    ) -> VelocityResult<u64> {
         match (taker_direction, self.price_type) {
             (PositionDirection::Long, PriceType::Limit) => Ok(self.ask.unsigned_abs()),
             (PositionDirection::Short, PriceType::Limit) => Ok(self.bid.unsigned_abs()),
@@ -513,7 +528,7 @@ impl JitSignedMsgParams {
         self,
         oracle_price: i64,
         taker_direction: PositionDirection,
-    ) -> DriftResult<u64> {
+    ) -> VelocityResult<u64> {
         match (taker_direction, self.price_type) {
             (PositionDirection::Long, PriceType::Limit) => Ok(self.ask.unsigned_abs()),
             (PositionDirection::Short, PriceType::Limit) => Ok(self.bid.unsigned_abs()),
@@ -567,11 +582,10 @@ fn check_position_limits(
 }
 
 fn place_and_make<'info>(
-    ctx: &Context<'_, '_, '_, 'info, Jit<'info>>,
+    ctx: &Context<'info, Jit<'info>>,
     taker_order_id: u32,
     order_params: OrderParams,
 ) -> Result<()> {
-    let drift_program = ctx.accounts.drift_program.to_account_info().clone();
     let cpi_accounts = PlaceAndMake {
         state: ctx.accounts.state.to_account_info().clone(),
         user: ctx.accounts.user.to_account_info().clone(),
@@ -581,24 +595,25 @@ fn place_and_make<'info>(
         taker_stats: ctx.accounts.taker_stats.to_account_info().clone(),
     };
 
-    let cpi_context = CpiContext::new(drift_program, cpi_accounts)
+    let cpi_context = CpiContext::new(ctx.accounts.drift_program.key(), cpi_accounts)
         .with_remaining_accounts(ctx.remaining_accounts.into());
 
-    if order_params.market_type == DriftMarketType::Perp {
-        drift::cpi::place_and_make_perp_order(cpi_context, order_params, taker_order_id)?;
+    if order_params.market_type == VelocityMarketType::Perp {
+        velocity::cpi::place_and_make_perp_order(cpi_context, order_params, taker_order_id)?;
     } else {
-        drift::cpi::place_and_make_spot_order(cpi_context, order_params, taker_order_id, None)?;
+        // Velocity does not support spot order matching; spot markets are
+        // collateral-only, so there is no `place_and_make_spot_order` CPI.
+        return Err(ErrorCode::SpotOrdersNotSupported.into());
     }
 
     Ok(())
 }
 
 fn place_and_make_signed_msg<'info>(
-    ctx: &Context<'_, '_, '_, 'info, JitSignedMsg<'info>>,
+    ctx: &Context<'info, JitSignedMsg<'info>>,
     order_params: OrderParams,
     signed_msg_order_uuid: [u8; 8],
 ) -> Result<()> {
-    let drift_program = ctx.accounts.drift_program.to_account_info();
     let state = ctx.accounts.state.to_account_info();
     let taker = ctx.accounts.taker.to_account_info();
     let taker_stats = ctx.accounts.taker_stats.to_account_info();
@@ -614,10 +629,11 @@ fn place_and_make_signed_msg<'info>(
         taker_signed_msg_user_orders,
     };
 
-    let cpi_context_place_and_make = CpiContext::new(drift_program, cpi_accounts_place_and_make)
-        .with_remaining_accounts(ctx.remaining_accounts.into());
+    let cpi_context_place_and_make =
+        CpiContext::new(ctx.accounts.drift_program.key(), cpi_accounts_place_and_make)
+            .with_remaining_accounts(ctx.remaining_accounts.into());
 
-    drift::cpi::place_and_make_signed_msg_perp_order(
+    velocity::cpi::place_and_make_signed_msg_perp_order(
         cpi_context_place_and_make,
         order_params,
         signed_msg_order_uuid,

@@ -1,6 +1,6 @@
 import {
 	BN,
-	DriftClient,
+	VelocityClient,
 	getSignedMsgUserAccountPublicKey,
 	isVariant,
 	MakerInfo,
@@ -13,8 +13,9 @@ import {
 	UserAccount,
 	hasBuilder,
 	getRevenueShareEscrowAccountPublicKey,
-} from '@drift-labs/sdk';
-import { IDL, JitProxy } from './types/jit_proxy';
+} from '@velocity-exchange/sdk';
+import { JitProxy } from './types/jit_proxy';
+import jitProxyIDL from './idl/jit_proxy.json';
 import {
 	ComputeBudgetProgram,
 	PublicKey,
@@ -23,7 +24,7 @@ import {
 	VersionedTransaction,
 } from '@solana/web3.js';
 import { Program } from '@coral-xyz/anchor';
-import { TxSigAndSlot } from '@drift-labs/sdk';
+import { TxSigAndSlot } from '@velocity-exchange/sdk';
 
 export const DEFAULT_CU_LIMIT = 1_400_000;
 
@@ -120,18 +121,25 @@ export type OrderConstraint = {
 };
 
 export class JitProxyClient {
-	private driftClient: DriftClient;
+	private driftClient: VelocityClient;
 	private program: Program<JitProxy>;
 
 	constructor({
 		driftClient,
 		programId,
 	}: {
-		driftClient: DriftClient;
+		driftClient: VelocityClient;
 		programId: PublicKey;
 	}) {
 		this.driftClient = driftClient;
-		this.program = new Program(IDL, programId, driftClient.provider);
+		// Anchor 1.0: the program address lives in the IDL and the Program
+		// constructor is (idl, provider). Honor a caller-supplied programId by
+		// overriding the IDL address before constructing.
+		const idl = {
+			...(jitProxyIDL as JitProxy),
+			address: programId.toBase58(),
+		} as JitProxy;
+		this.program = new Program(idl, driftClient.provider);
 	}
 
 	public async jit(
