@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 use drift::controller::position::PositionDirection;
 use drift::cpi::accounts::{PlaceAndMake, PlaceAndMakeSignedMsg};
 use drift::error::DriftResult;
-use drift::instructions::optional_accounts::{load_maps, AccountMaps};
+use drift::instructions::optional_accounts::{AccountMaps, load_maps};
 use drift::math::casting::Cast;
 use drift::math::safe_math::SafeMath;
 use drift::program::Drift;
@@ -21,10 +21,7 @@ use crate::error::ErrorCode;
 use crate::state::PriceType;
 use drift::state::order_params::PostOnlyParam;
 
-pub fn jit<'c: 'info, 'info>(
-    ctx: Context<'_, '_, 'c, 'info, Jit<'info>>,
-    params: JitParams,
-) -> Result<()> {
+pub fn jit<'info>(ctx: Context<'info, Jit<'info>>, params: JitParams) -> Result<()> {
     let clock = Clock::get()?;
     let slot = clock.slot;
 
@@ -116,8 +113,8 @@ pub fn jit<'c: 'info, 'info>(
     Ok(())
 }
 
-pub fn jit_signed_msg<'c: 'info, 'info>(
-    ctx: Context<'_, '_, 'c, 'info, JitSignedMsg<'info>>,
+pub fn jit_signed_msg<'info>(
+    ctx: Context<'info, JitSignedMsg<'info>>,
     params: JitSignedMsgParams,
 ) -> Result<()> {
     let clock = Clock::get()?;
@@ -211,7 +208,10 @@ pub fn jit_signed_msg<'c: 'info, 'info>(
     Ok(())
 }
 
-#[allow(clippy::too_many_arguments)]
+#[allow(
+    clippy::too_many_arguments,
+    reason = "JIT matching engine requires tightly coupled parameters from different sources"
+)]
 #[inline(always)]
 fn process_order(
     maker: &User,
@@ -434,7 +434,7 @@ pub struct JitSignedMsg<'info> {
     pub taker_stats: AccountLoader<'info, UserStats>,
     /// CHECK: checked in SignedMsgUserOrdersZeroCopy checks
     #[account(mut)]
-    pub taker_signed_msg_user_orders: AccountInfo<'info>,
+    pub taker_signed_msg_user_orders: UncheckedAccount<'info>,
     pub authority: Signer<'info>,
     pub drift_program: Program<'info, Drift>,
 }
@@ -567,7 +567,7 @@ fn check_position_limits(
 }
 
 fn place_and_make<'info>(
-    ctx: &Context<'_, '_, '_, 'info, Jit<'info>>,
+    ctx: &Context<'info, Jit<'info>>,
     taker_order_id: u32,
     order_params: OrderParams,
 ) -> Result<()> {
@@ -581,7 +581,7 @@ fn place_and_make<'info>(
         taker_stats: ctx.accounts.taker_stats.to_account_info().clone(),
     };
 
-    let cpi_context = CpiContext::new(drift_program, cpi_accounts)
+    let cpi_context = CpiContext::new(*drift_program.key, cpi_accounts)
         .with_remaining_accounts(ctx.remaining_accounts.into());
 
     if order_params.market_type == DriftMarketType::Perp {
@@ -594,7 +594,7 @@ fn place_and_make<'info>(
 }
 
 fn place_and_make_signed_msg<'info>(
-    ctx: &Context<'_, '_, '_, 'info, JitSignedMsg<'info>>,
+    ctx: &Context<'info, JitSignedMsg<'info>>,
     order_params: OrderParams,
     signed_msg_order_uuid: [u8; 8],
 ) -> Result<()> {
@@ -614,8 +614,9 @@ fn place_and_make_signed_msg<'info>(
         taker_signed_msg_user_orders,
     };
 
-    let cpi_context_place_and_make = CpiContext::new(drift_program, cpi_accounts_place_and_make)
-        .with_remaining_accounts(ctx.remaining_accounts.into());
+    let cpi_context_place_and_make =
+        CpiContext::new(*drift_program.key, cpi_accounts_place_and_make)
+            .with_remaining_accounts(ctx.remaining_accounts.into());
 
     drift::cpi::place_and_make_signed_msg_perp_order(
         cpi_context_place_and_make,

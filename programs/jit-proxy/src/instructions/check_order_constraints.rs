@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use drift::instructions::optional_accounts::{load_maps, AccountMaps};
+use drift::instructions::optional_accounts::{AccountMaps, load_maps};
 use drift::math::casting::Cast;
 use drift::math::safe_math::SafeMath;
 use drift::state::user::User;
@@ -8,8 +8,8 @@ use std::collections::BTreeSet;
 use crate::error::ErrorCode;
 use crate::state::MarketType;
 
-pub fn check_order_constraints<'c: 'info, 'info>(
-    ctx: Context<'_, '_, 'c, 'info, CheckOrderConstraints<'info>>,
+pub fn check_order_constraints<'info>(
+    ctx: Context<'info, CheckOrderConstraints<'info>>,
     constraints: Vec<OrderConstraint>,
 ) -> Result<()> {
     let clock = Clock::get()?;

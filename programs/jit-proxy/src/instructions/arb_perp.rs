@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use drift::controller::position::PositionDirection;
 use drift::cpi::accounts::PlaceAndTake;
 use drift::error::DriftResult;
-use drift::instructions::optional_accounts::{load_maps, AccountMaps};
+use drift::instructions::optional_accounts::{AccountMaps, load_maps};
 use drift::math::casting::Cast;
 use drift::math::constants::{BASE_PRECISION, MARGIN_PRECISION_U128, QUOTE_PRECISION};
 use drift::math::margin::MarginRequirementType;
@@ -20,10 +20,7 @@ use drift::state::user_map::load_user_maps;
 
 use crate::error::ErrorCode;
 
-pub fn arb_perp<'c: 'info, 'info>(
-    ctx: Context<'_, '_, 'c, 'info, ArbPerp<'info>>,
-    market_index: u16,
-) -> Result<()> {
+pub fn arb_perp<'info>(ctx: Context<'info, ArbPerp<'info>>, market_index: u16) -> Result<()> {
     let clock = Clock::get()?;
     let slot = clock.slot;
     let now = clock.unix_timestamp;
@@ -178,7 +175,7 @@ fn calculate_max_base_asset_amount(
 }
 
 fn place_and_take<'info>(
-    ctx: &Context<'_, '_, '_, 'info, ArbPerp<'info>>,
+    ctx: &Context<'info, ArbPerp<'info>>,
     orders_params: Vec<OrderParams>,
 ) -> Result<()> {
     for order_params in orders_params {
@@ -190,7 +187,7 @@ fn place_and_take<'info>(
             authority: ctx.accounts.authority.to_account_info().clone(),
         };
 
-        let cpi_context = CpiContext::new(drift_program, cpi_accounts)
+        let cpi_context = CpiContext::new(*drift_program.key, cpi_accounts)
             .with_remaining_accounts(ctx.remaining_accounts.into());
 
         drift::cpi::place_and_take_perp_order(cpi_context, order_params, None)?;

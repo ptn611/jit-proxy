@@ -5,6 +5,21 @@ members = [
 exclude = [
     "rust"
 ]
+resolver = "2"
+
+[workspace.dependencies]
+anchor-lang = "1.1"
+anchor-spl = "1.1"
+bytemuck = "1.13.0"
+borsh = "1.5"
+solana-msg = "3"
+solana-sdk-ids = "3"
+solana-sysvar = "3"
+solana-instructions-sysvar = "3"
+solana-sha256-hasher = "3"
+
+[workspace.lints.rust]
+unexpected_cfgs = { level = "allow" }
 
 [profile.release]
 overflow-checks = true
