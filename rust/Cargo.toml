@@ -7,11 +7,11 @@ edition = "2024"
 async-trait = "0.1.86"
 dashmap = "6"
 dotenv = "0.15.0"
-drift-rs = { git = "https://github.com/velocity-exchange/drift-rs", rev = "5e1b5f8b" }
+drift-rs = { path = "../drift-rs" }
 env_logger = "0.11"
 futures = "0.3"
 futures-util = "0.3"
 log = "0.4"
-solana-sdk = "2"
+solana-sdk = "3"
 thiserror = "1"
 tokio = { version = "1.42.0", features = ["full"] }
