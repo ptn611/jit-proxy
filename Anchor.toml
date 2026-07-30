@@ -3,6 +3,7 @@ seeds = false
 skip-lint = false
 [programs.localnet]
 jit_proxy = "J1TnP8zvVxbtF5KFp5xRmWuvG9McnhzmBd9XGfCyuxFP"
+drift = "CRFEX81cWA7JkUe5E5YrurfAszRdWxvaYCyAzG39s3Fw"
 
 [registry]
 url = "https://api.apr.dev"
@@ -13,7 +14,7 @@ cluster = "Localnet"
 wallet = "~/.config/solana/id.json"
 
 [[test.genesis]]
-address = "dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH"
+address = "CRFEX81cWA7JkUe5E5YrurfAszRdWxvaYCyAzG39s3Fw"
 program = "./deps/drift.so"
 
 [scripts]

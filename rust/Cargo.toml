@@ -7,7 +7,7 @@ edition = "2024"
 async-trait = "0.1.86"
 dashmap = "6"
 dotenv = "0.15.0"
-drift-rs = { path = "../drift-rs" }
+drift-rs = { path = "../../drift-rs" }
 env_logger = "0.11"
 futures = "0.3"
 futures-util = "0.3"
