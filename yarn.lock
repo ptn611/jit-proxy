@@ -78,9 +78,9 @@
     bn.js "^5.1.2"
     buffer-layout "^1.2.0"
 
-"@drift-labs/sdk@2.157.0-beta.1":
+"@velocity-exchange/sdk@2.157.0-beta.1":
   version "2.157.0-beta.1"
-  resolved "https://registry.yarnpkg.com/@drift-labs/sdk/-/sdk-2.157.0-beta.1.tgz#2c0a9c1b8f38c7d8dc84fa5d902a2190cd24302c"
+  resolved "https://registry.yarnpkg.com/@velocity-exchange/sdk/-/sdk-2.157.0-beta.1.tgz#2c0a9c1b8f38c7d8dc84fa5d902a2190cd24302c"
   integrity sha512-lyxuM5Lb5Vr7zLE765Ua6My21ZL1ahkl1loccq6aKe9CMCNmqqSf8C1QQdh1rBYBRdeeMdh06tdxXDskrzuebQ==
   dependencies:
     "@coral-xyz/anchor" "0.29.0"

@@ -27,7 +27,7 @@ import {
 	SignedMsgOrderParamsDelegateMessage,
 	SignedMsgOrderParamsMessage,
 	OrderParamsBitFlag,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import { decodeUTF8 } from 'tweetnacl-util';
 
 export type UserFilter = (

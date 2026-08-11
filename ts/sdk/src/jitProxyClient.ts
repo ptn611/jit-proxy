@@ -13,7 +13,7 @@ import {
 	UserAccount,
 	hasBuilder,
 	getRevenueShareEscrowAccountPublicKey,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import { IDL, JitProxy } from './types/jit_proxy';
 import {
 	ComputeBudgetProgram,
@@ -23,7 +23,7 @@ import {
 	VersionedTransaction,
 } from '@solana/web3.js';
 import { Program } from '@coral-xyz/anchor';
-import { TxSigAndSlot } from '@drift-labs/sdk';
+import { TxSigAndSlot } from '@velocity-exchange/sdk';
 
 export const DEFAULT_CU_LIMIT = 1_400_000;
 

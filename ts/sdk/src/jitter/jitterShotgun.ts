@@ -10,7 +10,7 @@ import {
 	SwiftOrderSubscriber,
 	UserAccount,
 	UserStatsMap,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import { BaseJitter } from './baseJitter';
 
 export class JitterShotgun extends BaseJitter {

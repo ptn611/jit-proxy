@@ -19,7 +19,7 @@ import {
 	UserAccount,
 	UserStatsMap,
 	ZERO,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import { BaseJitter } from './baseJitter';
 
 type AuctionAndOrderDetails = {
