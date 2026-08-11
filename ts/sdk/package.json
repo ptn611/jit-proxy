@@ -7,7 +7,7 @@
 	},
 	"dependencies": {
 		"@coral-xyz/anchor": "0.29.0",
-		"@velocity-exchange/sdk": "2.163.0-beta.0",
+		"@velocity-exchange/sdk": "file:../../../protocol-v2/sdk",
 		"@solana/web3.js": "1.98.0",
 		"tweetnacl-util": "^0.15.1",
 		"typescript": "5.4.5"
