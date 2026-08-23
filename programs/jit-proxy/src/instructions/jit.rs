@@ -44,12 +44,12 @@ pub fn jit<'info>(ctx: Context<'info, Jit<'info>>, params: JitParams) -> Result<
     )?;
 
     let taker_order = taker
-        .get_order(params.taker_order_id)
+        .get_order(params.taker_order_id)?
         .ok_or(ErrorCode::TakerOrderNotFound)?;
-    let market_type = taker_order.market_type;
+    let market_type = taker_order.market_type()?;
     let market_index = taker_order.market_index;
 
-    let oracle_price = if taker_order.market_type == DriftMarketType::Perp {
+    let oracle_price = if taker_order.market_type()? == DriftMarketType::Perp {
         let perp_market = perp_market_map.get_ref(&taker_order.market_index)?;
         perp_market
             .get_mm_oracle_price_data(
@@ -72,7 +72,7 @@ pub fn jit<'info>(ctx: Context<'info, Jit<'info>>, params: JitParams) -> Result<
         params.max_position,
         params.min_position,
         oracle_price,
-        params.get_worst_price(oracle_price, taker_order.direction)?,
+        params.get_worst_price(oracle_price, taker_order.direction()?)?,
         params.post_only.unwrap_or(PostOnlyParam::MustPostOnly),
     )?;
 
@@ -83,7 +83,7 @@ pub fn jit<'info>(ctx: Context<'info, Jit<'info>>, params: JitParams) -> Result<
 
     let taker = ctx.accounts.taker.load()?;
 
-    let taker_base_asset_amount_unfilled_after = match taker.get_order(params.taker_order_id) {
+    let taker_base_asset_amount_unfilled_after = match taker.get_order(params.taker_order_id)? {
         Some(order) => order.get_base_asset_amount_unfilled(None)?,
         None => 0,
     };
@@ -132,7 +132,7 @@ pub fn jit_signed_msg<'info>(
         .ok_or(ErrorCode::SignedMsgOrderDoesNotExist)?
         .order_id;
     let taker_order = taker
-        .get_order(taker_order_id)
+        .get_order(taker_order_id)?
         .ok_or(ErrorCode::TakerOrderNotFound)?;
 
     let remaining_accounts_iter = &mut ctx.remaining_accounts.iter().peekable();
@@ -167,7 +167,7 @@ pub fn jit_signed_msg<'info>(
         params.max_position,
         params.min_position,
         oracle_price,
-        params.get_worst_price(oracle_price, taker_order.direction)?,
+        params.get_worst_price(oracle_price, taker_order.direction()?)?,
         params.post_only.unwrap_or(PostOnlyParam::MustPostOnly),
     )?;
 
@@ -178,7 +178,7 @@ pub fn jit_signed_msg<'info>(
 
     let taker = ctx.accounts.taker.load()?;
 
-    let taker_base_asset_amount_unfilled_after = match taker.get_order(taker_order_id) {
+    let taker_base_asset_amount_unfilled_after = match taker.get_order(taker_order_id)? {
         Some(order) => order.get_base_asset_amount_unfilled(None)?,
         None => 0,
     };
@@ -225,9 +225,9 @@ fn process_order(
     maker_worst_price: u64,
     post_only: PostOnlyParam,
 ) -> Result<(OrderParams, u64, u64, u64)> {
-    let market_type = taker_order.market_type;
+    let market_type = taker_order.market_type()?;
     let market_index = taker_order.market_index;
-    let taker_direction = taker_order.direction;
+    let taker_direction = taker_order.direction()?;
 
     let slots_left = taker_order
         .slot
@@ -242,12 +242,12 @@ fn process_order(
     );
 
     msg!(
-        "taker order type {:?} auction start {} auction end {} limit price {} oracle price offset {}",
-        taker_order.order_type,
+        "taker order type {:?} auction start {} auction end {} limit price {} offset {}",
+        taker_order.order_type()?,
         taker_order.auction_start_price,
         taker_order.auction_end_price,
         taker_order.price,
-        taker_order.oracle_price_offset
+        taker_order.offset
     );
 
     let (tick_size, min_order_size, is_prediction_market) = if market_type == DriftMarketType::Perp
@@ -275,6 +275,7 @@ fn process_order(
         slot,
         tick_size,
         is_prediction_market,
+        None,
         None,
     )? {
         Some(price) => price,
@@ -393,7 +394,8 @@ fn process_order(
         max_ts: None,
         trigger_price: None,
         trigger_condition: OrderTriggerCondition::Above,
-        oracle_price_offset: None,
+        offset: None,
+        offset_type: None,
         auction_duration: None,
         auction_start_price: None,
         auction_end_price: None,

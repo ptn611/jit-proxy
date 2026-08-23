@@ -105,7 +105,7 @@ pub fn arb_perp<'info>(ctx: Context<'info, ArbPerp<'info>>, market_index: u16) -
             max_ts: None,
             trigger_price: None,
             trigger_condition: OrderTriggerCondition::Above,
-            oracle_price_offset: None,
+            offset: None, offset_type: None,
             auction_duration: None,
             auction_start_price: None,
             auction_end_price: None,
