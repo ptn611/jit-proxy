@@ -25,7 +25,7 @@ However, the ```JitterSniper``` also requires a ```SlotSubscriber``` in its cons
     jit_proxy_client = JitProxyClient(
         drift_client,
         # JIT program ID
-        Pubkey.from_string("J1TnP8zvVxbtF5KFp5xRmWuvG9McnhzmBd9XGfCyuxFP"),
+        Pubkey.from_string("Fzme515VV3TJhTyLaPqZ66n9B7PjG4P5ate7tDUeK81E"),
     )
 
     jitter_shotgun = JitterShotgun(drift_client, auction_subscriber, jit_proxy_client, True) # The boolean is logging verbosity, True = verbose.

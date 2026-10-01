@@ -4,12 +4,12 @@
 
 ```JitProxyClient``` will create and send transactions to the jit proxy program. Instantiate a jit proxy client with a drift client and a program Id. The current public key for the jit proxy program is
 
-```J1TnP8zvVxbtF5KFp5xRmWuvG9McnhzmBd9XGfCyuxFP```. Example instantiation:
+```Fzme515VV3TJhTyLaPqZ66n9B7PjG4P5ate7tDUeK81E```. Example instantiation:
 
 ```
 const jitProxyClient = new JitProxyClient({
 			driftClient,
-			programId: new PublicKey('J1TnP8zvVxbtF5KFp5xRmWuvG9McnhzmBd9XGfCyuxFP'),
+			programId: new PublicKey('Fzme515VV3TJhTyLaPqZ66n9B7PjG4P5ate7tDUeK81E'),
 		});
 ```
 
@@ -45,7 +45,7 @@ Example set up for the JitterSniper (assuming parameters are already initialized
 ```
 const jitProxyClient = new JitProxyClient({
 			driftClient,
-			programId: new PublicKey('J1TnP8zvVxbtF5KFp5xRmWuvG9McnhzmBd9XGfCyuxFP'),
+			programId: new PublicKey('Fzme515VV3TJhTyLaPqZ66n9B7PjG4P5ate7tDUeK81E'),
 		});
 
 		const jitter = new JitterSniper({
