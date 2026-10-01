@@ -8,4 +8,6 @@ cargo test --quiet
 yarn prettify
 yarn lint
 cd ts/sdk
-tsc
+# `tsc` trần không có trong PATH của husky (chỉ `node_modules/.bin` được thêm
+# khi chạy qua yarn) ⇒ gọi tường minh binary đã cài.
+../../node_modules/.bin/tsc

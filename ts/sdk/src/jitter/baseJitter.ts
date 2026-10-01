@@ -22,6 +22,7 @@ import {
 	UserAccount,
 	UserStatsMap,
 	ZERO,
+	OffsetType,
 	isSignedMsgOrder,
 	OrderTriggerCondition,
 	SignedMsgOrderParamsDelegateMessage,
@@ -267,6 +268,11 @@ export abstract class BaseJitter {
 					orderType: signedMsgOrderParams.orderType,
 					orderId: this.convertUuidToNumber(orderMessageRaw['uuid']),
 					slot: new BN(orderSlot),
+					offsetType: signedMsgOrderParams.offsetType ?? OffsetType.Oracle,
+					trailingPrice: signedMsgOrderParams.callbackRate
+						? signedMsgOrderParams.price
+						: ZERO,
+					callbackRate: new BN(signedMsgOrderParams.callbackRate ?? 0),
 					marketIndex: signedMsgOrderParams.marketIndex,
 					marketType: MarketType.PERP,
 					baseAssetAmount: signedMsgOrderParams.baseAssetAmount,
@@ -280,7 +286,7 @@ export abstract class BaseJitter {
 					bitFlags: signedMsgOrderParams.bitFlags,
 					direction: signedMsgOrderParams.direction,
 					postOnly: false,
-					oraclePriceOffset: signedMsgOrderParams.oraclePriceOffset ?? 0,
+					offset: signedMsgOrderParams.offset ?? 0,
 					maxTs: signedMsgOrderParams.maxTs ?? ZERO,
 					reduceOnly: signedMsgOrderParams.reduceOnly ?? false,
 					triggerCondition:

@@ -105,10 +105,13 @@ pub fn arb_perp<'info>(ctx: Context<'info, ArbPerp<'info>>, market_index: u16) -
             max_ts: None,
             trigger_price: None,
             trigger_condition: OrderTriggerCondition::Above,
-            offset: None, offset_type: None,
+            offset: None,
+            offset_type: None,
             auction_duration: None,
             auction_start_price: None,
             auction_end_price: None,
+            trigger_price_type: None,
+            callback_rate: None,
         }
     };
 

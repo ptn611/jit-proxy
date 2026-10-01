@@ -399,6 +399,8 @@ fn process_order(
         auction_duration: None,
         auction_start_price: None,
         auction_end_price: None,
+        trigger_price_type: None,
+        callback_rate: None,
     };
     Ok((
         order_params,

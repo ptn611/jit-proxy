@@ -3,7 +3,9 @@
 	"version": "0.21.173",
 	"scripts": {
 		"clean": "rm -rf lib",
-		"build": "yarn clean && tsc"
+		"build": "yarn clean && tsc",
+		"build:offline": "bash ./build.sh",
+		"build:install": "bash ./build.sh --install"
 	},
 	"dependencies": {
 		"@coral-xyz/anchor": "0.29.0",

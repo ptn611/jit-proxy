@@ -1,21 +1,27 @@
+[toolchain]
+
 [features]
-seeds = false
+resolution = true
 skip-lint = false
+
 [programs.localnet]
-jit_proxy = "J1TnP8zvVxbtF5KFp5xRmWuvG9McnhzmBd9XGfCyuxFP"
 drift = "CRFEX81cWA7JkUe5E5YrurfAszRdWxvaYCyAzG39s3Fw"
-
-[registry]
-url = "https://api.apr.dev"
-
+jit_proxy = "Fzme515VV3TJhTyLaPqZ66n9B7PjG4P5ate7tDUeK81E"
 
 [provider]
-cluster = "Localnet"
+cluster = "localnet"
 wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+
+[hooks]
+
+[test]
+startup_wait = 5000
+shutdown_wait = 2000
+upgradeable = false
 
 [[test.genesis]]
 address = "CRFEX81cWA7JkUe5E5YrurfAszRdWxvaYCyAzG39s3Fw"
 program = "./deps/drift.so"
-
-[scripts]
-test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
